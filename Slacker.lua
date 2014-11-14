@@ -31,7 +31,7 @@ unlocking = 0
 
 
 function onForegroundWindowChange(app, title)
-    myo.debug("onForegroundWindowChange: " .. app .. ", " .. title)
+    -- myo.debug("onForegroundWindowChange: " .. app .. ", " .. title)
 	local foundSlacker = string.match(title, "Slacker") ~= nil or string.match(title, "sway.fm") ~= nil
 	if (foundSlacker) then
 		appTitle = title

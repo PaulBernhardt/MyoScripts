@@ -3,17 +3,27 @@ scriptId = 'com.thalmic.examples.racethesun'
 description = [[
 Race the Sun
 
+From the Steam description: You are a solar craft. The sun is your death timer. Hurtle towards the sunset at breakneck speed in a futile race against time. Delay the inevitable by catching energy boosts which reverse the setting sun - if only for a moment.
+
 Problems? Talk to Paul (@PBernhardt)
 
+ Demo here: http://www.kongregate.com/games/flippfly/race-the-sun ]]
+ 
+ link = [[http://store.steampowered.com/app/253030/]]
+ 
+ controls = [[
 Controls:
  - Hold thumb to pinky to enable/disable mouse control
  - Wave in/out to click
  - Fist to center your yaw/roll, and then yaw left/right to fly left/right
  - Wave up/down to jump if you get a jump pickup
- - Fingers spread to hit escape and pause or back up in the menus
+ - Fingers spread to hit escape and pause or back up in the menus 
+ ]]
  
- Demo here: http://www.kongregate.com/games/flippfly/race-the-sun ]]
-
+ knownIssues = [[
+- None
+ ]]
+ 
 centreYaw = 0
 centreRoll = 0
 
@@ -75,6 +85,7 @@ function centre()
 	centreYaw = myo.getYaw()
 	centreRoll = myo.getRoll()
 	myo.vibrate("short")
+	myo.keyboard("enter", "press")
 end
 
 function onPeriodic()
