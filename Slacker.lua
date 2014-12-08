@@ -1,9 +1,11 @@
 scriptId = 'com.thalmic.examples.slacker'
+scriptTitle = "Slacker Control"
+scriptDetailsUrl = ""
 description = [[
 Slacker Contoller
 
 Controls:
-- Fist to take/release control, can be performed on Slacker page before music is playing, or sway.fm page
+- Fist then raise arm to take control, fist then lower to release, can be performed on Slacker page before music is playing, or sway.fm page
 - Wave left/right to next/prev tracks
 - Finger spread to play/pause
 
@@ -19,16 +21,8 @@ Known Issues:
 - If release control accidently, it's a hassle to get it back (you have to go back to sway.fm)
 
 ]]
+
 active = false
-locked = true
-appTitle = ""
-
-ENABLED_TIMEOUT = 2200
-
-UNLOCK_HOLD_DURATION = 400
-
-unlocking = 0
-
 
 function onForegroundWindowChange(app, title)
     -- myo.debug("onForegroundWindowChange: " .. app .. ", " .. title)
@@ -40,90 +34,55 @@ function onForegroundWindowChange(app, title)
     return foundSlacker or active
 end
 
-function activeAppName()
-	return appTitle
-end
 
-function onPoseEdge(pose, edge)
-	myo.debug("onPoseEdge: " .. pose .. ": " .. edge)
-	
-	pose = conditionallySwapWave(pose)
-	
-	if (edge == "on") then
-		if (pose == "thumbToPinky") then
-			unlocking = myo.getTimeMilliseconds()
-			--toggleLock()
-		elseif (not locked) then
-			if (pose == "waveOut") then
-				onWaveOut()		
-				extendUnlock()
-			elseif (pose == "waveIn") then
-				onWaveIn()
-				extendUnlock()
-			elseif (pose == "fist") then
-				onFist()
-				extendUnlock()
-			elseif (pose == "fingersSpread") then
-				onFingersSpread()			
-				extendUnlock()
-			end
-		end
-	end
-end
-
-function onPeriodic()
-    local now = myo.getTimeMilliseconds()
-	if (unlocking > 0 and now > unlocking + UNLOCK_HOLD_DURATION) then
-		toggleLock()
-		unlocking = 0
-		return
-	end
-    if not locked then
-        if (now - enabledSince) > ENABLED_TIMEOUT then
-            toggleLock()
-        end
+function nextTrack(edge)
+    if (edge == down) then
+        return false
     end
-end
-
-function toggleLock()
-	locked = not locked
-	myo.vibrate("short")
-	if (not locked) then
-		-- Vibrate twice on unlock
-		myo.debug("Unlocked")
-		myo.vibrate("short")
-		enabledSince = myo.getTimeMilliseconds()
-	else 
-		myo.debug("Locked")
-	end
-end
-
-function onWaveOut()
 	myo.debug("Next")
 	myo.keyboard("right_arrow","press","alt")
 end
 
-function onWaveIn()
+function previousTrack(edge)
+    if (edge == down) then
+        return false
+    end
 	myo.debug("Previous")
 	myo.keyboard("left_arrow","press","alt")
 end
 
-
-function onFist()
-	active = not active		
-	if (active) then
-		myo.debug("Now controlling your music")
-	else
-		myo.debug("No longer controlling your music")
-	end
-	myo.vibrate("medium")
-	myo.keyboard("up_arrow","press","alt")
+startingPitch = nil
+function toggleControl(edge)
+    if (edge == "down") then
+        startingPitch = myo.getPitch()
+    else
+        local deltaPitch = myo.getPitch() - startingPitch
+        myo.debug(deltaPitch)
+        if (deltaPitch > .5 and not active or deltaPitch < -.5 and active) then
+        	myo.vibrate("medium")
+            myo.keyboard("up_arrow","press","alt")
+           	active = not active		
+            myo.debug("Toggling music control")
+        end
+    end
 end
 
-function onFingersSpread()
+function playPause(edge)
+    if (edge == down) then
+        return false
+    end
 	myo.debug("Play/Pause")
 	myo.keyboard("down_arrow", "press", "alt")
 end
+
+ STANDARD_BINDINGS = {
+    fist            = toggleControl,
+    fingersSpread   = playPause,
+    waveOut         = nextTrack,
+    wavein          = previousTrack
+}
+
+bindings = STANDARD_BINDINGS
 
 function conditionallySwapWave(pose)
 	if myo.getArm() == "left" then
@@ -136,8 +95,20 @@ function conditionallySwapWave(pose)
     return pose
 end
 
-function extendUnlock()
-    local now = myo.getTimeMilliseconds()
+function activeAppName()
+    return scriptTitle
+end
 
-    enabledSince = now
+function onPoseEdge(pose, edge)    
+    if (pose ~= "rest" and pose ~= "unknown") then
+        -- hold if edge is on, timed if edge is off
+        myo.unlock(edge == "off" and "timed" or "hold")
+    end
+    pose = conditionallySwapWave(pose)
+    --myo.debug("onPoseEdge: " .. pose .. ": " .. edge)
+    fn = bindings[pose]
+    if fn then
+        keyEdge = edge == "off" and "up" or "down"
+        fn(keyEdge)
+    end
 end
