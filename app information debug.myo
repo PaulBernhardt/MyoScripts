@@ -1,7 +1,10 @@
 scriptId = 'com.thalmic.examples.appInformationDebug'
 scriptTitle = "App Information Debug"
 
+-- Make sure Developer Mode is on in Myo Connect -> Preferences
+-- Then, open the application you are interested in and note the value of app and title.
+
 function onForegroundWindowChange(app, title)
-    myo.debug("onForegroundWindowChange: " .. app .. ", " .. title)
+    myo.debug("App: " .. app .. ", Title: " .. title)
     return false
 end
