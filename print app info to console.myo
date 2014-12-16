@@ -1,5 +1,5 @@
 scriptId = 'com.thalmic.examples.appInformationDebug'
-scriptTitle = "App Information Debug"
+scriptTitle = "Print app info to console"
 
 -- Make sure Developer Mode is on in Myo Connect -> Preferences
 -- Then, open the application you are interested in and note the value of app and title.
