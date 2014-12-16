@@ -29,25 +29,25 @@ function onForegroundWindowChange(app, title)
 	local foundSlacker = string.match(title, "Slacker") ~= nil or string.match(title, "sway.fm") ~= nil
 	if (foundSlacker) then
 		appTitle = title
-		myo.debug("Slacker controls now active")
+		--myo.debug("Slacker controls now active")
 	end
     return foundSlacker or active
 end
 
 
 function nextTrack(edge)
-    if (edge == down) then
+    if (edge == "down") then
         return false
     end
-	myo.debug("Next")
+	--myo.debug("Next")
 	myo.keyboard("right_arrow","press","alt")
 end
 
 function previousTrack(edge)
-    if (edge == down) then
+    if (edge == "down") then
         return false
     end
-	myo.debug("Previous")
+	--myo.debug("Previous")
 	myo.keyboard("left_arrow","press","alt")
 end
 
@@ -62,16 +62,17 @@ function toggleControl(edge)
         	myo.vibrate("medium")
             myo.keyboard("up_arrow","press","alt")
            	active = not active		
-            myo.debug("Toggling music control")
+            --myo.debug("Toggling music control")
         end
     end
 end
 
 function playPause(edge)
-    if (edge == down) then
+    myo.debug(edge)
+    if (edge == "down") then
         return false
     end
-	myo.debug("Play/Pause")
+	--myo.debug("Play/Pause")
 	myo.keyboard("down_arrow", "press", "alt")
 end
 
@@ -106,9 +107,9 @@ function onPoseEdge(pose, edge)
     end
     pose = conditionallySwapWave(pose)
     --myo.debug("onPoseEdge: " .. pose .. ": " .. edge)
+    local keyEdge = edge == "off" and "up" or "down"
     fn = bindings[pose]
     if fn then
-        keyEdge = edge == "off" and "up" or "down"
         fn(keyEdge)
     end
 end

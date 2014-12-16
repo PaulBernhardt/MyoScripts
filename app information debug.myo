@@ -1,0 +1,7 @@
+scriptId = 'com.thalmic.examples.appInformationDebug'
+scriptTitle = "App Information Debug"
+
+function onForegroundWindowChange(app, title)
+    myo.debug("onForegroundWindowChange: " .. app .. ", " .. title)
+    return false
+end
