@@ -5,24 +5,16 @@ description = [[
 Conrol slide shows with your Myo! Works with Picasa and Windows Photo viewer
 
 Controls:
-- Fist then raise arm to take control, fist then lower to release, can be performed on Slacker page before music is playing, or sway.fm page
-- Wave left/right to next/prev tracks
-- Finger spread to play/pause
+- Wave left/right to go back/previous
+- Fist to grab, roll left right to zoom in/out
+- Fingers spread to start slideshow (or star a photo in Picasa)
 
-Owner: Paul
-
-This takes advantage of the Chrome browser plugin sway.fm to control Slacker.
-
-You need to map the keys in Sway to alt-right, alt-left, alt-down and alt-up for next, prev, play/pause, and activate Sway respectively.
-
-This would control anything else Sway supports, but it will only activate on Slacker or the sway.fm page.
+Owner: Paul (PBernhardt@gmail.com)
 
 Known Issues:
-- If release control accidently, it's a hassle to get it back (you have to go back to sway.fm)
+- It takes a few seconds for slide show mode to end, so if you finger spread twice you may end up in the wrong state. Just fingers spread more!
 
 ]]
-
-active = false
 
 function onForegroundWindowChange(app, title)
     --myo.debug("onForegroundWindowChange: " .. app .. ", " .. title)
