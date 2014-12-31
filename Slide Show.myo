@@ -1,0 +1,187 @@
+scriptId = 'com.undercoveryeti.myo.slideshow'
+scriptTitle = "Slide Show"
+scriptDetailsUrl = ""
+description = [[
+Conrol slide shows with your Myo! Works with Picasa and Windows Photo viewer
+
+Controls:
+- Fist then raise arm to take control, fist then lower to release, can be performed on Slacker page before music is playing, or sway.fm page
+- Wave left/right to next/prev tracks
+- Finger spread to play/pause
+
+Owner: Paul
+
+This takes advantage of the Chrome browser plugin sway.fm to control Slacker.
+
+You need to map the keys in Sway to alt-right, alt-left, alt-down and alt-up for next, prev, play/pause, and activate Sway respectively.
+
+This would control anything else Sway supports, but it will only activate on Slacker or the sway.fm page.
+
+Known Issues:
+- If release control accidently, it's a hassle to get it back (you have to go back to sway.fm)
+
+]]
+
+active = false
+
+function onForegroundWindowChange(app, title)
+    --myo.debug("onForegroundWindowChange: " .. app .. ", " .. title)
+	local foundApp = false
+	if (app == "PicasaPhotoViewer.exe") then
+		foundApp = true
+		bindings = PICASA_BINDINGS
+		appTitle = "Picasa"
+	elseif (string.match(title, " - Windows Photo Viewer") ~= nil or string.match(title,"Photo Viewer Slide Show") ~= nil) then
+		foundApp = true
+		bindings = STANDARD_BINDINGS
+		appTitle = "Photo Viewer"
+	end
+	
+    return foundApp
+end
+
+
+function nextPhoto(edge)
+    myo.keyboard("right_arrow",edge)
+end
+
+function previousPhoto(edge)
+     myo.keyboard("left_arrow",edge)
+end
+
+function lock(edge)
+	if (edge == "down") then
+		myo.lock()
+	end
+end
+
+centreRoll = 0
+function grab(edge)
+	myo.controlMouse(edge == "down")
+	myo.centerMousePosition()
+	myo.mouse("left", edge)
+	
+	if (edge == "down") then
+		centreRoll = myo.getRoll()
+	else
+		centreRoll = 0
+	end
+end
+
+playState = "f11"
+function playPause(edge)
+	myo.keyboard(playState, edge)
+	if (edge == "up") then
+        playState = playState == "f11" and "escape" or "f11"
+	end
+	--myo.debug("Playstate now " .. playState)
+end
+
+function star(edge)
+	myo.keyboard("8", edge, "control")
+end
+
+ROLL_DEADZONE = .15
+function controlZoom()
+	if (centreRoll == 0) then
+		return
+	end
+	roll = calculateDeltaRadians(myo.getRoll(), centreRoll)
+	if (roll > ROLL_DEADZONE) then
+		bindings.zoomOut()
+		centreRoll = myo.getRoll()
+	elseif (roll < -ROLL_DEADZONE) then
+		bindings.zoomIn()
+		centreRoll = myo.getRoll()
+	end
+    
+end
+
+function standardZoomIn()
+	myo.keyboard("equal", "press", "control")
+end
+
+function standardZoomOut()
+	myo.keyboard("minus", "press", "control")
+end
+
+function picasaZoomIn()
+	myo.keyboard("up_arrow", "press")
+end
+
+function picasaZoomOut()
+	myo.keyboard("down_arrow", "press")
+end
+
+ STANDARD_BINDINGS = {
+    fist            = grab,
+    fingersSpread   = playPause,
+    waveOut         = nextPhoto,
+    waveIn          = previousPhoto,
+	doubleTap       = lock(),
+	onPeriodic      = controlZoom,
+	zoomIn          = standardZoomIn,
+	zoomOut         = standardZoomOut
+}
+
+PICASA_BINDINGS = {
+    fist            = grab,
+    fingersSpread   = star,
+    waveOut         = nextPhoto,
+    waveIn          = previousPhoto,
+	doubleTap       = lock(),
+	onPeriodic      = controlZoom,
+	zoomIn          = picasaZoomIn,
+	zoomOut         = picasaZoomOut
+}
+
+bindings = STANDARD_BINDINGS
+
+function conditionallySwapWave(pose)
+	if myo.getArm() == "left" then
+        if pose == "waveIn" then
+            pose = "waveOut"
+        elseif pose == "waveOut" then
+            pose = "waveIn"
+        end
+    end
+    return pose
+end
+
+PI = math.pi
+TWOPI = PI * 2
+function calculateDeltaRadians(currentYaw, centreYaw)
+    local deltaYaw = currentYaw - centreYaw
+    
+    if (deltaYaw > PI) then
+        deltaYaw = deltaYaw - TWOPI
+    elseif(deltaYaw < -PI) then
+        deltaYaw = deltaYaw + TWOPI
+    end
+    return deltaYaw
+end
+
+function activeAppName()
+    return scriptTitle
+end
+
+function onPoseEdge(pose, edge)    
+    if (pose ~= "rest" and pose ~= "unknown") then
+        -- hold if edge is on, timed if edge is off
+        myo.unlock(edge == "off" and "timed" or "hold")
+    end
+    pose = conditionallySwapWave(pose)
+    --myo.debug("onPoseEdge: " .. pose .. ": " .. edge)
+    local keyEdge = edge == "off" and "up" or "down"
+    fn = bindings[pose]
+    if fn then
+        fn(keyEdge)
+    end
+end
+
+function onPeriodic()
+	fn = bindings["onPeriodic"]
+    if fn then
+        fn()
+    end
+end
